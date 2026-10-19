@@ -1,21 +1,27 @@
 ﻿using System.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class playerMove : MonoBehaviour
 {
-    [SerializeField] private Text timeScale;
-    [SerializeField] private float moveSpeed = 5f;        // Скорость перемещения
+    [SerializeField] private float moveSpeed;
     [SerializeField] private Transform movePoint;         // Вспомогательная точка-таргет
-    [SerializeField] private LayerMask obstaclesLayer;    // Слои объектов, через которые нельзя пройти
-    [SerializeField] private LayerMask floorLayer;        // Слои объектов пола
+    private LayerMask obstaclesLayer;    // Слои объектов, через которые нельзя пройти
+    private LayerMask floorLayer;  
 
     private bool isMoving = false;
-    private bool hasFallen = false;                       // Флаг: игрок уже упал (чтобы не спамить в лог)
-    private const float tileSize = 1f;                    // Размер одной ячейки сетки
+    private bool hasFallen = false; 
+    private float tileSize; 
 
     private void Start()
     {
+        floorLayer = SharedVariables.Instance.floorLayer;
+        obstaclesLayer = SharedVariables.Instance.stoneLayer;
+        tileSize = SharedVariables.Instance.sellSize; 
+        moveSpeed = SharedVariables.Instance.playerSpeed;
+
         movePoint.parent = null;
         movePoint.position = transform.position;
     }
@@ -29,9 +35,7 @@ public class playerMove : MonoBehaviour
             if (!IsOnFloor(transform.position) && !hasFallen)
             {
                 hasFallen = true;
-                Debug.Log("упал");
-                timeScale.text = "0f";
-                // Time.timeScale = 0f;
+                PlayerFail();
                 return;
             }
 
@@ -70,5 +74,19 @@ public class playerMove : MonoBehaviour
     private bool IsObstacleAt(Vector3 targetPos)
     {
         return Physics2D.OverlapCircle(targetPos, tileSize*0.45f, obstaclesLayer);
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Stone"))
+        {
+            PlayerFail();
+        }
+    }
+
+    public void PlayerFail()
+    {
+        Debug.Log("you lose");
+        Time.timeScale = 0;
     }
 }

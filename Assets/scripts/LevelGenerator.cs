@@ -1,8 +1,6 @@
-using System.CodeDom.Compiler;
-using Mono.Cecil.Cil;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Tilemaps;
+using Random = UnityEngine.Random;
+
 
 public class LevelGenerator : MonoBehaviour
 {
@@ -10,27 +8,30 @@ public class LevelGenerator : MonoBehaviour
     public GameObject floorPrefab;
     public GameObject heartsPrefab;
     public GameObject StonePrefab;
+    public GameObject Player;
+
 
     [Tooltip("Левый нижний угол")] 
     public Vector2 FirstPosition;
-    public int gridY = 10;
-    public int gridX = 10;
-
-
-    [Header("Размер плитки")]
-    public float tileSize = 1f;   // LEAD повторяется, так что я считаю надо будет импортировать с будущего настроечного файла
-
-    [Header("Настройки уровня")]
-    [SerializeField] private int stones = 5;
-    [SerializeField] private int hearts = 5;
-
-
+    private int gridY;
+    private int gridX;
+    private float tileSize; 
+    [SerializeField] private int stones;
+    [SerializeField] private int hearts;
 
     void Start()
     {
+        gridX = SharedVariables.Instance.gridWidth;
+        gridY = SharedVariables.Instance.gridHeight;
+        tileSize = SharedVariables.Instance.sellSize;
+        stones = SharedVariables.Instance.stonesCount;
+        hearts = SharedVariables.Instance.heartsCount;
+
         GenerateGrid();
         GenerateObj();
+        GenerateAt(0,0,Player);
     }
+
 
     void GenerateGrid()
     {
@@ -44,15 +45,14 @@ public class LevelGenerator : MonoBehaviour
             }
         }
     }
-
     void GenerateObj()
     {  
         int[][] ObjPosition = new int[hearts+stones][];
 
         for(int i = 0; i < ObjPosition.Length; i++)
         {
-            int x = Random.Range(0,gridX+1);
-            int y = Random.Range(0,gridY+1);
+            int x = Random.Range(0,gridX);
+            int y = Random.Range(0,gridY);
 
             if (!CheckObj(x,y,ObjPosition))
             {
@@ -66,7 +66,6 @@ public class LevelGenerator : MonoBehaviour
             else i--;
         }
     }
-
 
     bool CheckObj(int x, int y, int[][] ObjPosition)
     {
@@ -83,9 +82,8 @@ public class LevelGenerator : MonoBehaviour
 
     void GenerateAt(int x, int y, GameObject type)
     {
-        Vector3 spawnPosition = new Vector3(FirstPosition.x + x * tileSize, FirstPosition.x + y * tileSize, 0);
+        Vector3 spawnPosition = new Vector3(FirstPosition.x + x * tileSize, FirstPosition.y + y * tileSize, 0);
         GameObject spawnTile = Instantiate(type, spawnPosition, Quaternion.identity);
         spawnTile.transform.parent = this.transform;
     }
-
 }
